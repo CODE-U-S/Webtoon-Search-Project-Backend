@@ -1,28 +1,32 @@
-// 지니 뮤직 top 200 참고
-const axios = require("axios");
-const cheerio = require("cheerio");
+const express = require('express');
+const axios = require('axios');
+const cheerio = require('cheerio');
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-const getHtml = async () => {
+app.get('/genie-chart', async (req, res) => {
   try {
-    // 1
-    const html = await axios.get("https://www.genie.co.kr/chart/top200");
-    let ulList = [];
-    // 2
+    const html = await axios.get('https://www.genie.co.kr/chart/top200');
     const $ = cheerio.load(html.data);
-    // 3
-    const bodyList = $("tr.list");
-    bodyList.map((i, element) => {
-      ulList[i] = {
+
+    const ulList = [];
+    const bodyList = $('tr.list');
+
+    bodyList.each((i, element) => {
+      ulList.push({
         rank: i + 1,
-        // 4
-        title: $(element).find("td.info a.title").text().replace(/\s/g, ""),
-        artist: $(element).find("td.info a.artist").text().replace(/\s/g, ""),
-      };
+        title: $(element).find('td.info a.title').text().replace(/\s/g, ''),
+        artist: $(element).find('td.info a.artist').text().replace(/\s/g, ''),
+      });
     });
-    console.log("bodyList : ", ulList);
+
+    res.json(ulList);
   } catch (error) {
     console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-};
+});
 
-getHtml();
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
