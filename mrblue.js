@@ -30,24 +30,31 @@ app.get('/', async (req, res) => {
 
     // 각 li 요소에 대해 반복
     listItems.each((index, element) => {
-      // 현재 요소에서 필요한 정보 추출
-      const imgElement = $(element).find('.img');
-      const href = imgElement.find('a').attr('href');
-      const dataOriginal = imgElement.find('img').attr('data-original');
+      // "img adultmark" 클래스를 가진 li는 무시
+      if ($(element).find('.img.adultmark').length === 0) {
+        // 현재 요소에서 필요한 정보 추출
+        const imgElement = $(element).find('.img');
+        const href = "https://www.mrblue.com" + imgElement.find('a').attr('href');
+        const dataOriginal = imgElement.find('img').attr('data-original');
 
-      const txtBoxElement = $(element).find('.txt-box');
-      const title = txtBoxElement.find('.tit a').attr('title');
-      const genre = txtBoxElement.find('.name span a').eq(0).text();
-      const author = txtBoxElement.find('.name a').eq(1).text();
+        const txtBoxElement = $(element).find('.txt-box');
+        const title = txtBoxElement.find('.tit a').attr('title');
+        const genre = txtBoxElement.find('.name span a').eq(0).text();
+        const author = txtBoxElement.find('.name a').eq(1).text();
 
-      // 결과 배열에 추가
-      resultList.push({
-        href,
-        dataOriginal,
-        title,
-        genre,
-        author,
-      });
+        const service = "mrblue";
+
+        // 결과 배열에 추가
+        resultList.push({
+          id: index, // 각 데이터에 id 추가
+          href,
+          dataOriginal,
+          title,
+          genre,
+          author,
+          service,
+        });
+      }
     });
 
     // 추출한 정보를 응답
