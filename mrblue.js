@@ -12,8 +12,25 @@ async function fetchHTML(url) {
 }
 
 // API 엔드포인트
-app.get('/', async (req, res) => {
-  const url = 'https://www.mrblue.com/webtoon/mon#list';
+app.get('/:day', async (req, res) => {
+  // 클라이언트에서 전달된 요일(day) 파라미터
+  const day = req.params.day;
+
+  // 각 요일에 대한 URL 매핑
+  const dayToUrl = {
+    'new': 'https://www.mrblue.com/webtoon/new#list',
+    'mon': 'https://www.mrblue.com/webtoon/mon#list',
+    'tue': 'https://www.mrblue.com/webtoon/tue#list',
+    'wed': 'https://www.mrblue.com/webtoon/wed#list',
+    'thu': 'https://www.mrblue.com/webtoon/thu#list',
+    'fri': 'https://www.mrblue.com/webtoon/fri#list',
+    'sat': 'https://www.mrblue.com/webtoon/sat#list',
+    'sun': 'https://www.mrblue.com/webtoon/sun#list',
+    'tenday': 'https://www.mrblue.com/webtoon/tenday#list',
+  };
+
+  // 지정된 요일에 해당하는 URL 가져오기
+  const url = dayToUrl[day];
 
   try {
     // HTML 가져오기
@@ -29,6 +46,7 @@ app.get('/', async (req, res) => {
     const resultList = [];
 
     // 각 li 요소에 대해 반복
+    let sequence = 1;
     listItems.each((index, element) => {
       // "img adultmark" 클래스를 가진 li는 무시
       if ($(element).find('.img.adultmark').length === 0) {
@@ -39,14 +57,21 @@ app.get('/', async (req, res) => {
 
         const txtBoxElement = $(element).find('.txt-box');
         const title = txtBoxElement.find('.tit a').attr('title');
-        const genre = txtBoxElement.find('.name span a').eq(0).text();
+
+        // genre가 없는 경우 무시
+        const genreElement = txtBoxElement.find('.name span a').eq(0);
+        if (!genreElement.length) {
+          return; // genre가 없으면 반복 중단
+        }
+        const genre = genreElement.text();
+
         const author = txtBoxElement.find('.name a').eq(1).text();
 
         const service = "mrblue";
 
         // 결과 배열에 추가
         resultList.push({
-          id: index, // 각 데이터에 id 추가
+          Sequence: sequence++, // Sequence 값 증가
           href,
           dataOriginal,
           title,
