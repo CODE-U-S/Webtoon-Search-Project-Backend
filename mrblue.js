@@ -53,7 +53,7 @@ app.get('/:day', async (req, res) => {
         // 현재 요소에서 필요한 정보 추출
         const imgElement = $(element).find('.img');
         const href = "https://www.mrblue.com" + imgElement.find('a').attr('href');
-        const dataOriginal = imgElement.find('img').attr('data-original');
+        const imageUrl = imgElement.find('img').attr('data-original');
 
         const txtBoxElement = $(element).find('.txt-box');
         const title = txtBoxElement.find('.tit a').attr('title');
@@ -73,7 +73,7 @@ app.get('/:day', async (req, res) => {
         resultList.push({
           Sequence: sequence++, // Sequence 값 증가
           href,
-          dataOriginal,
+          imageUrl,
           title,
           genre,
           author,
