@@ -77,7 +77,7 @@ app.get('/:day', async (req, res) => {
           title,
           genre,
           author,
-          service,
+          service: "mrblue"
         });
       }
     });
