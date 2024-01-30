@@ -62,7 +62,6 @@ app.get('/:day', async (req, res) => {
             const $webtoon = cheerio.load(webtoonHtml);
             const author = $webtoon('.thumb-info .tag-writer').text(); // 작가 정보 가져오기
 
-            const service = "anytoon";
             // 결과 배열에 추가
             resultList.push({
                 Sequence: sequence++, // Sequence 값 증가
@@ -71,7 +70,7 @@ app.get('/:day', async (req, res) => {
                 title,
                 genre,
                 author,
-                service,
+                service: "anytoon"
             });
         }
 
