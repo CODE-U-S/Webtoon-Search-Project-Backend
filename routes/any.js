@@ -32,16 +32,16 @@ router.get('/:day?', async (req, res) => {
             const allDaysData = [];
             for (const dayKey in dayToUrl) {
                 const url = dayToUrl[dayKey];
-                const dayData = await fetchData(url);
+                const dayData = await fetchData(url, dayKey); // 요일 정보를 fetchData 함수에 전달
                 allDaysData.push(...dayData);
             }
-            res.json(allDaysData);
+            res.json(allDaysData); // 전체 데이터를 JSON 형식으로 응답
         } else {
             // 지정된 요일에 해당하는 URL 가져오기
             const url = dayToUrl[day];
             // HTML 가져오기
-            const dayData = await fetchData(url);
-            res.json(dayData);
+            const dayData = await fetchData(url, day); // 요일 정보를 fetchData 함수에 전달
+            res.json(dayData); // 해당 요일의 데이터를 JSON 형식으로 응답
         }
     } catch (error) {
         console.error('Error:', error);
@@ -50,7 +50,7 @@ router.get('/:day?', async (req, res) => {
 });
 
 // 웹 페이지에서 데이터 가져오는 함수
-async function fetchData(url) {
+async function fetchData(url, day) {
     const html = await fetchHTML(url);
     const $ = cheerio.load(html);
     const webtoonList = $('.webtoon-list li');
@@ -80,7 +80,8 @@ async function fetchData(url) {
             title,
             genre,
             author,
-            service: "anytoon"
+            service: "any",
+            day // 요일 정보 추가
         });
     }
     return resultList;
