@@ -39,14 +39,30 @@ router.post('/write', async (req, res) => {
             // DB 데이터 수정
             await queryAsync(modify_query, [comment, rating, user_id, title]);
             res.status(201).json({ message: "리뷰 수정을 성공적으로 끝마쳤습니다!" });
+
         }else{
-            // DB 쿼리
-            const query = "INSERT INTO review (work_name, rating, user_id, comment) VALUES (?, ?, ?, ?)";
+            // 리뷰 작성에 쓸 쿼리
+            const write_query = "INSERT INTO review (work_name, rating, user_id, comment) VALUES (?, ?, ?, ?)";
     
             // DB 데이터 삽입
-            await queryAsync(query, [title, rating, user_id, comment]);
+            await queryAsync(write_query, [title, rating, user_id, comment]);
             res.status(201).json({ message: "리뷰 작성을 성공적으로 끝마쳤습니다!" });
         }
+
+        //웹툰의 평균 평점 api
+        const rating_query = `SELECT rating FROM review WHERE work_name = '${title}'`;
+        const aver_rating_query = "UPDATE work SET rating = ? WHERE title = ?";
+
+        const rating_result = await queryAsync(rating_query);
+        let aver_rating = 0;
+        for(let rate of rating_result){
+            aver_rating += rate.rating;
+        }
+        aver_rating = (aver_rating / rating_result.length).toFixed(2);
+        
+        await queryAsync(aver_rating_query, [aver_rating, title]);
+        console.log("평균 갱신 성공");
+
     } catch (error) {
         console.error("에러 발생 : " + error);
         res.status(500).json({ message: "에러가 발생하였습니다." });
