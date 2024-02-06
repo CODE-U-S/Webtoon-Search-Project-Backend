@@ -19,12 +19,19 @@ router.post('/write', async (req, res) => {
             return res.status(400).json({ message: "평점은 1점에서 5점까지만 가능합니다." });
         }
 
-        // 유저 유효성 검사
-        const userValidationQuery = 'SELECT user_id FROM user WHERE user_id = ?';
-        const [userValidationResults, userValidationFields] = await queryAsync(userValidationQuery, [user_id]);
-        if (userValidationResults === undefined) {
+        // 유저 유효성 검사 - 등록된 유저인가?
+        let userValidationQuery = 'SELECT user_id FROM user WHERE user_id = ?';
+        const [registered_user_result, registered_user_fields] = await queryAsync(userValidationQuery, [user_id]);
+        if (registered_user_result === undefined) {
             // 유저가 없을 경우
             return res.status(400).json({ message: "등록된 유저가 아닙니다." });
+        }
+        // 유저 유효성 검사 - 이미 작성된 리뷰가 있는가?
+        userValidationQuery = 'SELECT user_id FROM review WHERE user_id = ?';
+        const [written_review_results, written_review_fields] = await queryAsync(userValidationQuery, [user_id]);
+        if (written_review_results !== undefined) {
+            // 유저가 없을 경우
+            return res.status(400).json({ message: "이미 리뷰를 작성한 유저입니다." });
         }
 
         // DB 쿼리
