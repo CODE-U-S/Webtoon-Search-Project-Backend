@@ -5,12 +5,12 @@ const pool = require('../database/database');
 // 작품 검색 API
 router.get('/', async (req, res) => {
     try {
-        // 키워드를 추출합니다.
-        const keywords = req.query.keyword;
+        // 키워드를 배열로 변환합니다.
+        const keywords = Array.isArray(req.query.keyword) ? req.query.keyword : [req.query.keyword];
 
         // 유효성 검사
-        if (!keywords || !Array.isArray(keywords) || keywords.length === 0) {
-            return res.status(400).json({ message: "Keywords are required and must be provided as an array" });
+        if (!keywords || keywords.length === 0) {
+            return res.status(400).json({ message: "At least one keyword is required" });
         }
 
         // 데이터베이스에서 키워드를 포함하는 작품 검색
