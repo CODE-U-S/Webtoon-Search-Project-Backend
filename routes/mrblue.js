@@ -1,6 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const pool = require('../database/database'); // 데이터베이스 모듈 로드
+
 const router = express.Router(); // 라우터 객체 생성
 
 // 웹 페이지에서 HTML을 가져오는 함수
@@ -8,6 +10,55 @@ async function fetchHTML(url) {
     const { data } = await axios.get(url);
     return data;
 }
+
+// 데이터를 DB에 삽입하는 api
+async function insertDataToDB(data) {
+    const query = 'INSERT INTO work (title, author, genre, href, imageUrl, day, service) VALUES ?';
+    const values = data.map(item => [item.title, item.author, item.genre, item.href, item.imageUrl, item.day, item.service]);
+
+    return new Promise((resolve, reject) => {
+        pool.query(query, [values], (error, results, fields) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(results);
+            }
+        });
+    });
+}
+
+// '/mrblue/download' 엔드포인트
+router.get('/download', async (req, res) => {
+    try {
+        const dayToUrl = {
+            'new': 'https://www.mrblue.com/webtoon/new#list',
+            'mon': 'https://www.mrblue.com/webtoon/mon#list',
+            'tue': 'https://www.mrblue.com/webtoon/tue#list',
+            'wed': 'https://www.mrblue.com/webtoon/wed#list',
+            'thu': 'https://www.mrblue.com/webtoon/thu#list',
+            'fri': 'https://www.mrblue.com/webtoon/fri#list',
+            'sat': 'https://www.mrblue.com/webtoon/sat#list',
+            'sun': 'https://www.mrblue.com/webtoon/sun#list',
+            'tenday': 'https://www.mrblue.com/webtoon/tenday#list',
+        };
+
+        const allDaysData = [];
+        for (const dayKey in dayToUrl) {
+            const url = dayToUrl[dayKey];
+            const dayData = await fetchData(url, dayKey);
+            allDaysData.push(...dayData);
+        }
+
+        // 데이터를 DB에 삽입
+        await insertDataToDB(allDaysData);
+
+        res.json({ message: 'Data inserted to database successfully' });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 
 // API 엔드포인트
 router.get('/:day?', async (req, res) => {
