@@ -4,7 +4,7 @@ const { promisify } = require('util');
 const pool = require('../database/database');
 const queryAsync = promisify(pool.query).bind(pool);
 
-// 리뷰 달기 API
+// 리뷰 달기 $ 리뷰 수정 API
 router.post('/write', async (req, res) => {
     try {
         // 작품이름, 평점, 아이디, 댓글
@@ -26,22 +26,27 @@ router.post('/write', async (req, res) => {
             // 유저가 없을 경우
             return res.status(400).json({ message: "등록된 유저가 아닙니다." });
         }
-        // 유저 유효성 검사 - 이미 작성된 리뷰가 있는가?
-        userValidationQuery = 'SELECT user_id FROM review WHERE user_id = ?';
-        const [written_review_results, written_review_fields] = await queryAsync(userValidationQuery, [user_id]);
+
+        //리뷰 수정 api(else문은 리뷰 작성 부분)
+        // 유저 유효성 검사 - 이미 작성된 리뷰가 있는가? -> 있다면 이 내용으로 수정
+        userValidationQuery = 'SELECT user_id FROM review WHERE user_id = ? AND work_name = ?';
+        const [written_review_results, written_review_fields] = await queryAsync(userValidationQuery, [user_id, title]);
         if (written_review_results !== undefined) {
-            // 유저가 없을 경우
-            return res.status(400).json({ message: "이미 리뷰를 작성한 유저입니다." });
+
+            // 수정에 쓸 쿼리
+            const modify_query = 'UPDATE review SET comment = ?, rating = ? WHERE user_id = ? AND work_name = ?';
+
+            // DB 데이터 수정
+            await queryAsync(modify_query, [comment, rating, user_id, title]);
+            res.status(201).json({ message: "리뷰 수정을 성공적으로 끝마쳤습니다!" });
+        }else{
+            // DB 쿼리
+            const query = "INSERT INTO review (work_name, rating, user_id, comment) VALUES (?, ?, ?, ?)";
+    
+            // DB 데이터 삽입
+            await queryAsync(query, [title, rating, user_id, comment]);
+            res.status(201).json({ message: "리뷰 작성을 성공적으로 끝마쳤습니다!" });
         }
-
-        // DB 쿼리
-        const query = "INSERT INTO review (work_name, rating, user_id, comment) VALUES (?, ?, ?, ?)";
-
-        // DB 데이터 삽입
-        await queryAsync(query, [title, rating, user_id, comment]);
-
-        res.status(201).json({ message: "성공적으로 끝마쳤습니다!" });
-
     } catch (error) {
         console.error("에러 발생 : " + error);
         res.status(500).json({ message: "에러가 발생하였습니다." });
