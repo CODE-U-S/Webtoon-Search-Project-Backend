@@ -1,3 +1,4 @@
+// app.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const anyRouter = require('./routes/any');
@@ -6,9 +7,11 @@ const ridiRouter = require('./routes/ridi');
 
 const userRouter = require('./endpoints/user');
 const reviewRouter = require('./endpoints/review');
+const workRouter = require('./endpoints/work');
 
 const app = express();
 const port = 3000;
+
 // body-parser를 사용하여 JSON 형식의 요청 본문 파싱
 app.use(bodyParser.json());
 
@@ -26,6 +29,8 @@ app.use('/user', userRouter);
 
 // review.js의 라우터를 등록
 app.use('/review', reviewRouter);
+// work.js의 라우터를 등록
+app.use('/toon', workRouter);
 
 // 서버 시작
 app.listen(port, () => {
