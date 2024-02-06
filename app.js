@@ -6,6 +6,7 @@ const mrblueRouter = require('./routes/mrblue');
 const ridiRouter = require('./routes/ridi'); 
 
 const userRouter = require('./endpoints/user');
+const reviewRouter = require('./endpoints/review');
 const workRouter = require('./endpoints/work');
 
 const app = express();
@@ -26,6 +27,8 @@ app.use('/ridi', ridiRouter)
 // user.js의 라우터를 등록
 app.use('/user', userRouter);
 
+// review.js의 라우터를 등록
+app.use('/review', reviewRouter);
 // work.js의 라우터를 등록
 app.use('/toon', workRouter);
 
