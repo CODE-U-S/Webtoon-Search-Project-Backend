@@ -11,7 +11,7 @@ async function fetchHTML(url) {
     return data;
 }
 
-// 데이터를 DB에 삽입하는 함수
+// 데이터를 DB에 삽입하는 api
 async function insertDataToDB(data) {
     const query = 'INSERT INTO work (title, author, genre, href, imageUrl, day, service) VALUES ?';
     const values = data.map(item => [item.title, item.author, item.genre, item.href, item.imageUrl, item.day, item.service]);
