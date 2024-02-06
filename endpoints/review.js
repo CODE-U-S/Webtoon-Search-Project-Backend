@@ -41,4 +41,33 @@ router.post('/write', async (req, res) => {
     }
 });
 
+// 리뷰 모아보기 api
+router.get('/', async (req, res) => {
+    try{
+        //DB 쿼리
+        let query = 'SELECT * FROM review';
+
+        //조건 추가
+        const { title } = req.query;
+
+        //조건이 존재할 경우
+        if(title){
+            query += ` WHERE work_name = '${title}'`;
+        }
+
+        //DB에서 리뷰정보 조회
+        pool.query(query, (error, results, fields) => {
+            if(error){
+                console.error('Error retrieving users:', error);
+                return res.status(500).json({ message: "Internal Server Error" });
+            }
+
+            res.status(200).json(results);
+        });
+    } catch (error) {
+        console.error("에러 발생 : " + error);
+        res.status(500).json({ message: "에러가 발생하였습니다." });
+    }
+});
+
 module.exports = router;
