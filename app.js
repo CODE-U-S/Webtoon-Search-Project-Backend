@@ -5,6 +5,7 @@ const mrblueRouter = require('./routes/mrblue');
 const ridiRouter = require('./routes/ridi'); 
 
 const userRouter = require('./endpoints/user');
+const reviewRouter = require('./endpoints/review');
 
 const app = express();
 const port = 3000;
@@ -23,7 +24,8 @@ app.use('/ridi', ridiRouter)
 // user.js의 라우터를 등록
 app.use('/user', userRouter);
 
-
+// review.js의 라우터를 등록
+app.use('/review', reviewRouter);
 
 // 서버 시작
 app.listen(port, () => {
