@@ -95,18 +95,107 @@ router.delete('/delete', async (req, res) => {
 });
 
 
-
-
-
-// 좋아요 수 입력
+//좋아요 수 입력
+//필요한 정보 : 좋아요 작품 갯수
 // 좋아요 수 보기
+//필요한 정보 : 좋아요 작품 갯수
+
 // 좋아요 수 삭제
 
-// 좋아요 작품 추가
-// 좋아요 작품 보기
-// 좋아요 작품 삭제
 
+// 좋아요 작품 추가(필요한 정보 : id, 좋아요 작품 이름)
+router.post('/AddLikes', async (req, res) => {
+    try {
+      // 요청의 Body에서 데이터 가져오기
+      const likesData = req.body.likesData;
+  
+      // 데이터베이스에 삽입할 쿼리
+      const query = 'INSERT INTO Likes (user_id, like_works) VALUES ?';
+  
+      // 데이터베이스에 데이터 삽입
+      pool.query(query, [likesData.map(item => [item.user_id, item.like_works])], (error, results) => {
+        if (error) {
+          console.error('Error inserting data:', error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+  
+        console.log('Data inserted successfully.');
+        res.status(201).json({ message: "Data inserted successfully" });
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+  
 
+// 좋아요 작품 보기(필요한 정보 : id)
+router.get('/Likes', async (req, res) => {
+    try {
+      const { user_id } = req.query;
+  
+      // 쿼리문 작성
+      const query = `
+        SELECT Likes.like_works
+        FROM User
+        INNER JOIN Likes ON User.user_id = Likes.user_id
+        WHERE User.user_id = ?;
+    `;
+
+      // 데이터베이스에서 좋아하는 작품 조회
+      pool.query(query, [user_id], (error, results) => {
+        if (error) {
+          console.error('Error retrieving likes:', error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+  
+        // 조회 결과가 없는 경우
+        if (results.length === 0) {
+          return res.status(404).json({ message: "Likes not found for the user" });
+        }
+  
+        // 조회 결과를 응답으로 보냄
+        res.status(200).json(results);
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+
+// 좋아요 작품 삭제(필요한 정보 : id, 좋아요 작품 이름)
+router.delete('/DeleteWorks', async (req, res) => {
+    try {
+      const { user_id, like_works } = req.body;
+  
+      // 유효성 검사
+      if (!user_id || !like_works) {
+        return res.status(400).json({ message: "User ID and like works are required" });
+      }
+  
+      // 데이터베이스에서 좋아하는 작품 삭제하는 쿼리
+      const query = 'DELETE FROM Likes WHERE user_id = ? AND like_works = ?';
+  
+      // 데이터베이스에서 좋아하는 작품 삭제
+      pool.query(query, [user_id, like_works], (error, result) => {
+        if (error) {
+          console.error('Error deleting like:', error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+  
+        // 삭제된 행이 없으면
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "Like not found for the user" });
+        }
+  
+        // 삭제가 성공적으로 이루어지면
+        res.status(200).json({ message: "Like deleted successfully" });
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
 
 
 
