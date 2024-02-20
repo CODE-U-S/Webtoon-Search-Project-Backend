@@ -95,10 +95,75 @@ router.delete('/delete', async (req, res) => {
 });
 
 
-//좋아요 수 입력
+//작품의 좋아요 수 입력
 //필요한 정보 : 좋아요 작품 갯수
+router.patch('/LikeCount', async (req, res) => {
+  try {
+      const { user_id } = req.body;
+
+      // Likes 테이블에서 해당 user_id에 대한 like_works 개수 조회
+      const countQuery = "SELECT COUNT(like_works) AS like_count FROM Likes WHERE user_id = ?";
+      pool.query(countQuery, [user_id], (countError, countResults) => {
+          if (countError) {
+              console.error('Error counting likes:', countError);
+              return res.status(500).json({ message: "Internal Server Error" });
+          }
+
+          // 조회 결과가 없는 경우
+          if (countResults.length === 0) {
+              return res.status(404).json({ message: "Likes not found for the user" });
+          }
+
+          const likeCount = countResults[0].like_count;
+
+          // User 테이블에서 해당 user_id에 대한 like_count 열 업데이트
+          const updateQuery = "UPDATE User SET like_count = ? WHERE user_id = ?";
+          pool.query(updateQuery, [likeCount, user_id], (updateError, updateResults) => {
+              if (updateError) {
+                  console.error('Error updating like_count:', updateError);
+                  return res.status(500).json({ message: "Internal Server Error" });
+              }
+
+              // 업데이트가 성공적으로 이루어진 경우
+              res.status(200).json({ message: "Like count updated successfully" });
+          });
+      });
+  } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+
 // 좋아요 수 보기
 //필요한 정보 : 좋아요 작품 갯수
+router.get('/SeeLikes', async (req, res) => {
+  try {
+      const { user_id } = req.query;
+
+      // User 테이블에서 해당 user_id에 대한 like_count 조회
+      const query = "SELECT like_count FROM User WHERE user_id = ?";
+      pool.query(query, [user_id], (error, results) => {
+          if (error) {
+              console.error('Error retrieving like_count:', error);
+              return res.status(500).json({ message: "Internal Server Error" });
+          }
+
+          // 조회 결과가 없는 경우
+          if (results.length === 0) {
+              return res.status(404).json({ message: "User not found" });
+          }
+
+          // 조회 결과를 응답으로 보냄
+          res.status(200).json(results[0]);
+      });
+  } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+
 
 // 좋아요 수 삭제
 
@@ -130,38 +195,35 @@ router.post('/AddLikes', async (req, res) => {
   
 
 // 좋아요 작품 보기(필요한 정보 : id)
-router.get('/Likes', async (req, res) => {
-    try {
+router.get('/LikesWorks', async (req, res) => {
+  try {
       const { user_id } = req.query;
   
       // 쿼리문 작성
-      const query = `
-        SELECT Likes.like_works
-        FROM User
-        INNER JOIN Likes ON User.user_id = Likes.user_id
-        WHERE User.user_id = ?;
-    `;
-
+      const query = "SELECT like_works, works_address FROM Likes WHERE user_id = ?";
+  
       // 데이터베이스에서 좋아하는 작품 조회
       pool.query(query, [user_id], (error, results) => {
-        if (error) {
-          console.error('Error retrieving likes:', error);
-          return res.status(500).json({ message: "Internal Server Error" });
-        }
+          if (error) {
+              console.error('Error retrieving likes:', error);
+              return res.status(500).json({ message: "Internal Server Error" });
+          }
   
-        // 조회 결과가 없는 경우
-        if (results.length === 0) {
-          return res.status(404).json({ message: "Likes not found for the user" });
-        }
+          // 조회 결과가 없는 경우
+          if (results.length === 0) {
+              return res.status(404).json({ message: "Likes not found for the user" });
+          }
   
-        // 조회 결과를 응답으로 보냄
-        res.status(200).json(results);
+          // 조회 결과를 응답으로 보냄
+          res.status(200).json(results);
       });
-    } catch (error) {
+  } catch (error) {
       console.error('Error:', error);
       res.status(500).json({ message: "Internal Server Error" });
-    }
-  });
+  }
+});
+
+
 
 // 좋아요 작품 삭제(필요한 정보 : id, 좋아요 작품 이름)
 router.delete('/DeleteWorks', async (req, res) => {
