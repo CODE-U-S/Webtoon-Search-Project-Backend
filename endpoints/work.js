@@ -43,12 +43,6 @@ router.get('/', async (req, res) => {
 
 module.exports = router;
 
-
-// 리디북스
-// 미스터블루
-// 애니툰
-
-
 // 네이버웹툰
 // 카카오 웹툰
 // 카카오페이지
