@@ -169,6 +169,7 @@ router.get('/SeeLikes', async (req, res) => {
 
 
 // 좋아요 작품 추가(필요한 정보 : id, 좋아요 작품 이름)
+//--------------------------------------------------> 한 명의 유저가 얼마나 많은 작품을 좋아요 했는지 설정함. 하나의 작품을 얼마나 많은 유저가 좋아요 했는지로 바꿔야함.
 router.post('/AddLikes', async (req, res) => {
     try {
       // 요청의 Body에서 데이터 가져오기
@@ -196,32 +197,33 @@ router.post('/AddLikes', async (req, res) => {
 
 // 좋아요 작품 보기(필요한 정보 : id)
 router.get('/LikesWorks', async (req, res) => {
-  try {
-      const { user_id } = req.query;
+    try {
+        const { user_id } = req.query;
+    
+        // 쿼리문 작성
+        const query = "SELECT like_works, works_address FROM Likes WHERE user_id = ?";
+    
+        // 데이터베이스에서 좋아하는 작품 조회
+        pool.query(query, [user_id], (error, results) => {
+            if (error) {
+                console.error('Error retrieving likes:', error);
+                return res.status(500).json({ message: "Internal Server Error" });
+            }
+    
+            // 조회 결과가 없는 경우
+            if (results.length === 0) {
+                return res.status(404).json({ message: "Likes not found for the user" });
+            }
+    
+            // 조회 결과를 응답으로 보냄
+            res.status(200).json(results);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
   
-      // 쿼리문 작성
-      const query = "SELECT like_works, works_address FROM Likes WHERE user_id = ?";
-  
-      // 데이터베이스에서 좋아하는 작품 조회
-      pool.query(query, [user_id], (error, results) => {
-          if (error) {
-              console.error('Error retrieving likes:', error);
-              return res.status(500).json({ message: "Internal Server Error" });
-          }
-  
-          // 조회 결과가 없는 경우
-          if (results.length === 0) {
-              return res.status(404).json({ message: "Likes not found for the user" });
-          }
-  
-          // 조회 결과를 응답으로 보냄
-          res.status(200).json(results);
-      });
-  } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ message: "Internal Server Error" });
-  }
-});
 
 
 
