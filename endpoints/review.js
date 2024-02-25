@@ -98,4 +98,33 @@ router.get('/', async (req, res) => {
     }
 });
 
+//리뷰 삭제
+router.delete('/delete', async (req, res) => {
+    try {
+        const { user_id, work_name } = req.query;
+
+        // 쿼리문 작성
+        const query = "DELETE FROM review WHERE user_id = ? AND work_name = ?";
+
+        // 데이터베이스에서 해당하는 데이터 삭제
+        pool.query(query, [user_id, work_name], (error, results) => {
+            if (error) {
+                console.error('Error deleting review:', error);
+                return res.status(500).json({ message: "Internal Server Error" });
+            }
+
+            // 삭제된 행이 없는 경우
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ message: "유저 아이디나 작품 이름이 올바르지 않습니다." });
+            }
+
+            // 삭제 성공
+            res.status(200).json({ message: "리뷰가 성공적으로 삭제되었습니다." });
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: "주소를 다시 확인해주세요." });
+    }
+});
+
 module.exports = router;
