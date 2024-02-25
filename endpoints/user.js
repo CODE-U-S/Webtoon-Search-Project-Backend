@@ -13,7 +13,7 @@ router.post('/signup', async (req, res) => {
         }
 
         // 데이터베이스에 삽입할 쿼리
-        const query = 'INSERT INTO User (name, user_id, password) VALUES (?, ?, ?)';
+        const query = 'INSERT INTO user (name, user_id, password) VALUES (?, ?, ?)';
         
         // 데이터베이스에 데이터 삽입
         pool.query(query, [name, user_id, password], (error, results, fields) => {
