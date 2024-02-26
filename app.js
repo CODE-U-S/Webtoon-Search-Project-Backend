@@ -8,6 +8,7 @@ const ridiRouter = require('./routes/ridi');
 const userRouter = require('./endpoints/user');
 const reviewRouter = require('./endpoints/review');
 const workRouter = require('./endpoints/work');
+const likeRouter = require('./endpoints/like');
 
 const app = express();
 const port = 3000;
@@ -29,6 +30,10 @@ app.use('/user', userRouter);
 
 // review.js의 라우터를 등록
 app.use('/review', reviewRouter);
+
+//like.js의 라우터를 등록
+app.use('/like', likeRouter);
+
 // work.js의 라우터를 등록
 app.use('/toon', workRouter);
 
