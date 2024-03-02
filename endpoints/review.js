@@ -4,6 +4,26 @@ const { promisify } = require('util');
 const pool = require('../database/database');
 const queryAsync = promisify(pool.query).bind(pool);
 
+//웹툰의 평균 평점 구하기
+async function get_aver_rating(title){
+    try{
+        const rating_query = `SELECT rating FROM review WHERE work_name = '${title}'`;
+        const aver_rating_query = "UPDATE work SET rating = ? WHERE title = ?";
+
+        const rating_result = await queryAsync(rating_query);
+        let aver_rating = 0;
+        for(let rate of rating_result){
+            aver_rating += rate.rating;
+        }
+        aver_rating = (aver_rating / rating_result.length).toFixed(2);
+        
+        await queryAsync(aver_rating_query, [aver_rating, title]);
+
+    }catch(error){
+        console.error("평균평점 에러 발생 : " + error);
+    }
+}
+
 // 리뷰 달기 $ 리뷰 수정 API
 router.post('/write', async (req, res) => {
     try {
@@ -49,19 +69,7 @@ router.post('/write', async (req, res) => {
             res.status(201).json({ message: "리뷰 작성을 성공적으로 끝마쳤습니다!" });
         }
 
-        //웹툰의 평균 평점 api
-        const rating_query = `SELECT rating FROM review WHERE work_name = '${title}'`;
-        const aver_rating_query = "UPDATE work SET rating = ? WHERE title = ?";
-
-        const rating_result = await queryAsync(rating_query);
-        let aver_rating = 0;
-        for(let rate of rating_result){
-            aver_rating += rate.rating;
-        }
-        aver_rating = (aver_rating / rating_result.length).toFixed(2);
-        
-        await queryAsync(aver_rating_query, [aver_rating, title]);
-        console.log("평균 갱신 성공");
+        get_aver_rating(title);
 
     } catch (error) {
         console.error("에러 발생 : " + error);
@@ -120,6 +128,8 @@ router.delete('/delete', async (req, res) => {
 
             // 삭제 성공
             res.status(200).json({ message: "리뷰가 성공적으로 삭제되었습니다." });
+
+            get_aver_rating(work_name);
         });
     } catch (error) {
         console.error('Error:', error);
