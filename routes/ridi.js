@@ -60,36 +60,30 @@ router.get('/download', async (req, res) => {
 // API 엔드포인트 정의
 router.get('/:day?', async (req, res) => {
     try {
+        // 클라이언트에서 전달된 요일(day) 파라미터
         const day = req.params.day;
-        const dayToUrl = {
-            'mon': 'https://ridibooks.com/group-tab/2491/1',
-            'tue': 'https://ridibooks.com/group-tab/2491/2',
-            'wed': 'https://ridibooks.com/group-tab/2491/3',
-            'thr': 'https://ridibooks.com/group-tab/2491/4',
-            'fri': 'https://ridibooks.com/group-tab/2491/5',
-            'sat': 'https://ridibooks.com/group-tab/2491/6',
-            'sun': 'https://ridibooks.com/group-tab/2491/7'
-        };
 
-        // 요일이 주어지지 않은 경우 모든 요일의 URL 가져오기
-        if (!day) {
-            const allDaysData = [];
-            for (const dayKey in dayToUrl) {
-                const url = dayToUrl[dayKey];
-                const dayData = await fetchData(url, dayKey);
-                allDaysData.push(...dayData);
-            }
-            res.json(allDaysData);
-        } else {
-            // 주어진 요일에 해당하는 URL 가져오기
-            const url = dayToUrl[day];
-            // 데이터 가져오기
-            const dayData = await fetchData(url, day);
-            res.json(dayData); // 해당 요일의 데이터를 JSON 형식으로 응답
+        // 데이터베이스에서 요일에 따른 애니툰 웹툰 목록 가져오기
+        let query = 'SELECT * FROM work where service = "ridi"';
+
+        // 요일이 지정된 경우 해당 요일에 해당하는 데이터만 가져오도록 SQL 쿼리 수정
+        if (day) {
+            query += ' WHERE day = ?';
         }
+
+        // 데이터베이스에서 데이터 가져오기
+        pool.query(query, [day], async (error, results, fields) => {
+            if (error) {
+                console.error('Error:', error);
+                res.status(500).send('Internal Server Error');
+                return;
+            }
+
+            res.json(results); // 요청된 요일에 해당하는 데이터 또는 전체 데이터를 JSON 형식으로 응답
+        });
     } catch (error) {
-        console.error('오류:', error);
-        res.status(500).send('내부 서버 오류');
+        console.error('Error:', error);
+        res.status(500).send('Internal Server Error');
     }
 });
 

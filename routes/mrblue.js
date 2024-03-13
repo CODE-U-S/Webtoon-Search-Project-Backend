@@ -61,41 +61,30 @@ router.get('/download', async (req, res) => {
 
 
 // API 엔드포인트
+// API 엔드포인트
 router.get('/:day?', async (req, res) => {
     try {
         // 클라이언트에서 전달된 요일(day) 파라미터
         const day = req.params.day;
 
-        // 각 요일에 대한 URL 매핑
-        const dayToUrl = {
-            'new': 'https://www.mrblue.com/webtoon/new#list',
-            'mon': 'https://www.mrblue.com/webtoon/mon#list',
-            'tue': 'https://www.mrblue.com/webtoon/tue#list',
-            'wed': 'https://www.mrblue.com/webtoon/wed#list',
-            'thu': 'https://www.mrblue.com/webtoon/thu#list',
-            'fri': 'https://www.mrblue.com/webtoon/fri#list',
-            'sat': 'https://www.mrblue.com/webtoon/sat#list',
-            'sun': 'https://www.mrblue.com/webtoon/sun#list',
-            'tenday': 'https://www.mrblue.com/webtoon/tenday#list',
-        };
+        // 데이터베이스에서 요일에 따른 애니툰 웹툰 목록 가져오기
+        let query = 'SELECT * FROM work where service = "mrblue"';
 
-        // 요일이 주어지지 않은 경우 모든 요일의 데이터를 가져옴
-        if (!day) {
-            const allDaysData = [];
-            // 모든 요일에 대해 반복
-            for (const dayKey in dayToUrl) {
-                const url = dayToUrl[dayKey];
-                const dayData = await fetchData(url, dayKey); // fetchData 함수 호출 (요일 정보 전달)
-                allDaysData.push(...dayData); // 결과 데이터 배열에 추가
-            }
-            res.json(allDaysData); // 전체 데이터를 JSON 형식으로 응답
-        } else {
-            // 지정된 요일에 해당하는 URL 가져오기
-            const url = dayToUrl[day];
-            // HTML 가져오기
-            const dayData = await fetchData(url, day); // fetchData 함수 호출 (요일 정보 전달)
-            res.json(dayData); // 해당 요일의 데이터를 JSON 형식으로 응답
+        // 요일이 지정된 경우 해당 요일에 해당하는 데이터만 가져오도록 SQL 쿼리 수정
+        if (day) {
+            query += ' WHERE day = ?';
         }
+
+        // 데이터베이스에서 데이터 가져오기
+        pool.query(query, [day], async (error, results, fields) => {
+            if (error) {
+                console.error('Error:', error);
+                res.status(500).send('Internal Server Error');
+                return;
+            }
+
+            res.json(results); // 요청된 요일에 해당하는 데이터 또는 전체 데이터를 JSON 형식으로 응답
+        });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).send('Internal Server Error');
