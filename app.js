@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const anyRouter = require('./routes/any');
 const mrblueRouter = require('./routes/mrblue');
 const ridiRouter = require('./routes/ridi'); 
+const naverRouter = require('./routes/naver');
 
 const userRouter = require('./endpoints/user');
 const reviewRouter = require('./endpoints/review');
@@ -24,6 +25,9 @@ app.use('/mrblue', mrblueRouter);
 
 // ridi.js의 라우터를 등록
 app.use('/ridi', ridiRouter)
+
+// naver.js의 라우터를 등록
+app.use('/naver', naverRouter);
 
 // user.js의 라우터를 등록
 app.use('/user', userRouter);
