@@ -27,7 +27,7 @@ async function insertDataToDB(data) {
     });
 }
 
-// '/mrblue/download' 엔드포인트
+// '/any/download' 엔드포인트
 router.get('/download', async (req, res) => {
     try {
         const dayToUrl = {
