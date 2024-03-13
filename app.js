@@ -31,7 +31,7 @@ app.use('/user', userRouter);
 // review.js의 라우터를 등록
 app.use('/review', reviewRouter);
 
-//like.js의 라우터를 등록
+// like.js의 라우터를 등록
 app.use('/like', likeRouter);
 
 // work.js의 라우터를 등록

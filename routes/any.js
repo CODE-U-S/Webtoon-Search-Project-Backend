@@ -64,34 +64,24 @@ router.get('/:day?', async (req, res) => {
         // 클라이언트에서 전달된 요일(day) 파라미터
         const day = req.params.day;
 
-        // 요일에 따른 애니툰 웹툰 목록 페이지 URL
-        const dayToUrl = {
-            'mon': 'https://www.anytoon.co.kr/webtoon/series/mon',
-            'tue': 'https://www.anytoon.co.kr/webtoon/series/tue',
-            'wed': 'https://www.anytoon.co.kr/webtoon/series/wed',
-            'thr': 'https://www.anytoon.co.kr/webtoon/series/thr',
-            'fri': 'https://www.anytoon.co.kr/webtoon/series/fri',
-            'sat': 'https://www.anytoon.co.kr/webtoon/series/sat',
-            'sun': 'https://www.anytoon.co.kr/webtoon/series/sun',
-            'new': 'https://www.anytoon.co.kr/webtoon/series/new'
-        };
+        // 데이터베이스에서 요일에 따른 애니툰 웹툰 목록 가져오기
+        let query = 'SELECT * FROM work where service = "any"';
 
-        // 요일이 주어지지 않은 경우 모든 요일의 데이터를 가져옴
-        if (!day) {
-            const allDaysData = [];
-            for (const dayKey in dayToUrl) {
-                const url = dayToUrl[dayKey];
-                const dayData = await fetchData(url, dayKey); // 요일 정보를 fetchData 함수에 전달
-                allDaysData.push(...dayData);
-            }
-            res.json(allDaysData); // 전체 데이터를 JSON 형식으로 응답
-        } else {
-            // 지정된 요일에 해당하는 URL 가져오기
-            const url = dayToUrl[day];
-            // HTML 가져오기
-            const dayData = await fetchData(url, day); // 요일 정보를 fetchData 함수에 전달
-            res.json(dayData); // 해당 요일의 데이터를 JSON 형식으로 응답
+        // 요일이 지정된 경우 해당 요일에 해당하는 데이터만 가져오도록 SQL 쿼리 수정
+        if (day) {
+            query += ' WHERE day = ?';
         }
+
+        // 데이터베이스에서 데이터 가져오기
+        pool.query(query, [day], async (error, results, fields) => {
+            if (error) {
+                console.error('Error:', error);
+                res.status(500).send('Internal Server Error');
+                return;
+            }
+
+            res.json(results); // 요청된 요일에 해당하는 데이터 또는 전체 데이터를 JSON 형식으로 응답
+        });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).send('Internal Server Error');
