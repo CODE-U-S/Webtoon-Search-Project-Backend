@@ -2,23 +2,25 @@ const express = require('express');
 const axios = require('axios');
 const pool = require('../database/database'); // 데이터베이스 모듈 로드
 
-const router = express.Router(); // express의 라우터 객체 생성
+const router = express.Router();
 
-// MySQL에 데이터를 삽입하는 함수
-async function insertWebtoonsToDB(webtoons) {
-    const query = 'INSERT INTO work (title, author, genre, href, imageUrl, day, service) VALUES ?';
-    const values = webtoons.map(webtoon => [
-        webtoon.title,
-        webtoon.author,
-        '표시없음', // 장르 정보가 없는 경우 "표시없음"으로 설정
-        webtoon.url,
-        webtoon.img,
-        webtoon.updateDays.join(','), // updateDays 배열을 문자열로 변환하여 저장
-        webtoon.service
-    ]);
+// 요일 및 키워드를 기반으로 데이터베이스에서 웹툰 목록을 가져오는 함수
+async function getWebtoonsByDayAndKeyword(day, keyword) {
+    let query = 'SELECT * FROM work WHERE service = "naver"';
+
+    const queryParams = [];
+    if (day) {
+        query += ' AND day = ?';
+        queryParams.push(day);
+    }
+    if (keyword) {
+        query += ' AND (title LIKE ? OR author LIKE ? OR genre LIKE ?)';
+        const likeKeyword = `%${keyword}%`;
+        queryParams.push(likeKeyword, likeKeyword, likeKeyword);
+    }
 
     return new Promise((resolve, reject) => {
-        pool.query(query, [values], (error, results, fields) => { // 값을 괄호로 묶어줌
+        pool.query(query, queryParams, (error, results, fields) => {
             if (error) {
                 reject(error);
             } else {
@@ -28,33 +30,20 @@ async function insertWebtoonsToDB(webtoons) {
     });
 }
 
-// '/webtoons/download' 엔드포인트
-router.get('/download', async (req, res) => {
+// API 엔드포인트 정의
+router.get('/:day?', async (req, res) => {
     try {
-        // 각 업데이트 날짜에 해당하는 API 호출
-        const updateDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'finished'];
-        const allWebtoons = [];
+        const day = req.params.day;
+        const keyword = req.query.keyword; // 쿼리 문자열에서 키워드 가져오기
 
-        for (const day of updateDays) {
-            const url = `https://korea-webtoon-api.herokuapp.com/?perPage=100&service=naver&updateDay=${day}`;
-            try {
-                const { data } = await axios.get(url);
-                allWebtoons.push(...data.webtoons);
-            } catch (error) {
-                console.error(`Error fetching data for day ${day}:`, error);
-                continue; // 오류가 발생했을 경우 다음 작업으로 넘어가기
-            }
-        }
+        // 데이터베이스에서 요일과 키워드에 해당하는 웹툰 목록 가져오기
+        const webtoons = await getWebtoonsByDayAndKeyword(day, keyword);
 
-        // MySQL에 데이터 삽입
-        await insertWebtoonsToDB(allWebtoons);
-
-        res.json({ message: 'Data inserted to database successfully' });
+        res.json(webtoons); // JSON 형식으로 응답
     } catch (error) {
         console.error('Error:', error);
         res.status(500).send('Internal Server Error');
     }
 });
-
 
 module.exports = router;
