@@ -58,7 +58,7 @@ router.get('/download', async (req, res) => {
     }
 });
 
-// API 엔드포인트
+// /any/:day 엔드포인트 
 router.get('/:day?', async (req, res) => {
     try {
         // 클라이언트에서 전달된 요일(day) 파라미터
@@ -69,7 +69,7 @@ router.get('/:day?', async (req, res) => {
 
         // 요일이 지정된 경우 해당 요일에 해당하는 데이터만 가져오도록 SQL 쿼리 수정
         if (day) {
-            query += ' WHERE day = ?';
+            query += ' AND day = ?'; // WHERE 대신 AND를 사용해야 함
         }
 
         // 데이터베이스에서 데이터 가져오기
@@ -87,6 +87,7 @@ router.get('/:day?', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
+
 
 // 웹 페이지에서 데이터 가져오는 함수
 async function fetchData(url, day) {
