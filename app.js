@@ -1,6 +1,8 @@
-// app.js
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
+ 
+
 const anyRouter = require('./routes/any');
 const mrblueRouter = require('./routes/mrblue');
 const ridiRouter = require('./routes/ridi'); 
@@ -15,6 +17,12 @@ const likeRouter = require('./endpoints/like');
 
 const app = express();
 const port = 3000;
+
+app.use(cors({
+  origin: '*', // 모든 출처 허용 옵션. true 를 써도 된다.
+}));
+
+
 
 // body-parser를 사용하여 JSON 형식의 요청 본문 파싱
 app.use(bodyParser.json());
