@@ -94,5 +94,45 @@ router.delete('/delete', async (req, res) => {
     }
 });
 
+// 로그인 api
+router.post('/login', async (req, res) => {
+    try {
+        const { user_id, password } = req.body;
+
+        // 유효성 검사
+        if (!user_id || !password) {
+            return res.status(400).json({ message: "User ID and password are required" });
+        }
+
+        // 데이터베이스에서 사용자 조회
+        const query = 'SELECT * FROM user WHERE user_id = ?';
+        pool.query(query, [user_id], (error, results, fields) => {
+            if (error) {
+                console.error('Error retrieving user:', error);
+                return res.status(500).json({ message: "Internal Server Error" });
+            }
+
+            // 사용자가 존재하지 않는 경우
+            if (results.length === 0) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            const user = results[0];
+
+            // 비밀번호 확인
+            if (user.password !== password) {
+                return res.status(401).json({ message: "Incorrect password" });
+            }
+
+            // 로그인 성공
+            res.status(200).json({ message: "Login successful" });
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
+
 
 module.exports = router;
