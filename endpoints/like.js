@@ -3,9 +3,15 @@ const router = express.Router();
 const pool = require('../database/database');
 
 //작품의 좋아요 추가(good_work 테이블) *완료*
-router.post('/addgoodwork', async (req, res) => {
+router.post('/new', async (req, res) => {
     try {
-        const { user_id, user, work, imageUrl, href, start_day } = req.body;
+        const { user_id, user, work, imageUrl, href } = req.body;
+
+        // 현재 날짜의 년도, 월, 날짜 가져오기
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth()+1).padStart(2, '0');
+        const date = String(today.getDate()).padStart(2, '0');
   
         // 데이터베이스에 삽입할 쿼리
         const query = `
@@ -14,7 +20,7 @@ router.post('/addgoodwork', async (req, res) => {
         `;
   
         // 데이터베이스에 데이터 삽입
-        pool.query(query, [user_id, user, work, imageUrl, href, start_day], (error, results) => {
+        pool.query(query, [user_id, user, work, imageUrl, href, `${year}${month}${date}`], (error, results) => {
             if (error) {
                 console.error('Error inserting data:', error);
                 return res.status(500).json({ message: "Internal Server Error" });
@@ -27,7 +33,9 @@ router.post('/addgoodwork', async (req, res) => {
         console.error('Error:', error);
         res.status(500).json({ message: "Internal Server Error" });
     }
-  });
+});
+
+
   
   //작품의 좋아요 수 보기 *완료*
   router.get('/workcount/:work', async (req, res) => {
